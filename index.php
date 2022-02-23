@@ -13,7 +13,7 @@ if($user){
     header("Location: public/home.php");
     exit();
 }else{
-    header("Location: public/auth.php");
+    header("Location: public/index.html");
     exit();
 }
 ?>
