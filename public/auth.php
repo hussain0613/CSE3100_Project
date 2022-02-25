@@ -56,6 +56,19 @@
         <div class="form__input-error-message"></div>
       </div>
       
+      <div class="form__input-group">
+        <input
+          type="checkbox"
+          autofocus
+          name="remember_me"
+          value="true"
+          id = "remember_me"
+          checked
+        />
+        <label for="remember_me">Remember me</label>
+        <div class="form__input-error-message"></div>
+      </div>
+
       <input type="text" name="form-name" value="login-form" hidden />
 
       <button class="form__button" type="submit">Continue</button>

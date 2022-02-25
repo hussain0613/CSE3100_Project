@@ -38,33 +38,105 @@ function login(mysqli $conn): array | null{
 
 
 function generate_auth_token(User $user, string $secret_key): string{
-    $token = $user->get_id() . ":" . $user->get_uid() . ":" . password_hash($secret_key, PASSWORD_DEFAULT);
+    $payload = [
+        "username" => $user->username,
+        "scope" => "login",
+        "exp" => time() + (86400 * 30)
+    ];
+    
+    $token = encode_jwt($payload, $secret_key . $user->get_uid());
     return $token;
 }
 
 
 function verify_auth_token(mysqli $conn, string $token, string $secret_key): array | null{
-    $parts = explode(":", $token);
+    $parts = explode(".", $token);
     if(count($parts) != 3){
         return null;
     }
-    $user_id = $parts[0];
-    $uid = $parts[1];
-    $hash = $parts[2];
 
-    if(!password_verify($secret_key, $hash)){
+    try{
+        $payload = json_decode(base64_decode($parts[1]), true);
+    }catch(Exception $e){
         return null;
     }
     
-    $user = User::get_by_id($conn, $user_id);
-    if($user){
-        if($user->get_uid() == $uid){
-            return $user->get_map();
-        }
+    if(!$payload || !isset($payload["scope"]) || !isset($payload["username"])){
+        return null;
     }
-    return null;
+    
+    if($payload["scope"] != "login"){
+        return null;
+    }
+
+    try{
+        $user = User::get_by_username($conn, $payload["username"]);
+    }catch(TypeError $e){
+        return null;
+    }
+    
+
+    try{
+        $payload = decode_jwt($token, $secret_key . $user->get_uid());
+    }catch(Exception $e){
+        throw $e;
+        return null;
+    }
+    
+    return $user->get_map();
 }
 
+function encode_jwt(array $payload, string $secret_key): string{
+    $header = ['alg' => 'HS256','typ' => 'JWT'];
+    $header = base64_encode(json_encode($header));
+    $header = str_replace(['+', '/', '='], ['-', '_', ''], $header);
+    
+    $payload = base64_encode(json_encode($payload));
+    $payload = str_replace(['+', '/', '='], ['-', '_', ''], $payload);
+    
+    $signature = base64_encode(hash_hmac('sha256', $header . "." . $payload, $secret_key, true));
+    $signature = str_replace(['+', '/', '='], ['-', '_', ''], $signature);
+    
+    $jwt = $header . "." . $payload . "." . $signature;
+    
+    return $jwt;
+}
+
+
+function decode_jwt(string $jwt, string $secret_key): array{
+    $parts = explode(".", $jwt);
+    if(count($parts) != 3){
+        throw new LengthException("Invalid JWT");
+    }
+    
+    $header = json_decode(base64_decode($parts[0]), true);
+    $payload = json_decode(base64_decode($parts[1]), true);
+    $signature = $parts[2];
+
+    if(!isset($header['alg']) || $header['alg'] != 'HS256'){
+        throw new InvalidArgumentException("Invalid algorithm");
+    }
+
+    if(!isset($header['typ']) || $header['typ'] != 'JWT'){
+        throw new InvalidArgumentException("Invalid type");
+    }
+
+    if(isset($payload["exp"]) && $payload["exp"] < time()){
+        throw new RuntimeException("Expired");
+    }
+    if(isset($payload["nbf"]) && $payload["nbf"] > time()){
+        throw new RuntimeException("Not yet valid");
+    }
+    
+    $expected_signature = base64_encode(hash_hmac('sha256', $parts[0] . "." . $parts[1], $secret_key, true));
+    $expected_signature = str_replace(['+', '/', '='], ['-', '_', ''], $expected_signature);
+    if(!hash_equals($expected_signature, $signature)){
+        throw new RuntimeException("Invalid signature");
+    }
+
+    
+    return $payload;
+}
 
 function get_current_app_user(mysqli $conn): array | null{
     if(session_status() != 2) session_start();
