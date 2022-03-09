@@ -1,3 +1,21 @@
+<?php
+if(session_status() != 2) session_start();
+
+$script_dir = dirname(__FILE__);
+require_once $script_dir."/../utils/utils.php";
+require_once $script_dir."/../utils/db_connector.php";
+require_once $script_dir."/../utils/auth.php";
+
+$conn = DBConnector::get_connection(get_config());
+$user = get_current_app_user($conn);
+$conn->close();
+if($user){
+    header("Location: index.php");
+    exit();
+}
+?>
+
+
 <!DOCTYPE html>
 <head>
   <meta name="viewport" content="width=device-width, initial-scale=1.0" />
@@ -72,9 +90,6 @@
       <input type="text" name="form-name" value="login-form" hidden />
 
       <button class="form__button" type="submit">Continue</button>
-      <p class="form__text">
-        <a href="#" class="form__link">Forgot your password?</a>
-      </p>
       <p class="form__text">
         <a class="form__link" href="./" id="linkCreateAccount"
           >Don't have an account? Create account</a

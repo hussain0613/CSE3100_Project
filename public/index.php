@@ -9,10 +9,9 @@
             <P>
                 <?php
                     $user = $_SESSION['user'];
-                    echo "Welcome, " . $user['name'] . "!<br><br>";
-                    echo "Your details:<br>";
+                    echo "<h5>Welcome, " . $user['name'] . "!</h5>";
                     foreach($user as $key => $value){
-                        echo $key . ": " . $value . "<br>";
+                        echo "<p><b>" . ucwords($key) . "</b>: " . $value . "</p>";
                     }
                 ?>
             </p>

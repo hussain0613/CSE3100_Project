@@ -19,11 +19,14 @@
                 $target_org->status = 'declined';
             }
             $target_org->update($user['id']);
-            $org_creator = User::get_by_id($conn, $target_org->creator_id);
+            $org_creator = User::get_by_id($conn, $target_org->creator_id());
             if($target_org->status == 'approved' && $org_creator){
                 $org_creator->role = 'organization_admin';
                 $org_creator->update($user['id']);
             }
+            $_SESSION['message'] = 'Organization status updated';
+            header("Location: pending_organizations.php");
+            exit();
         }
     }
 ?>
@@ -58,7 +61,7 @@
                         <td><?php echo $org->name ?></td>
                         <td><?php echo $org->address ?></td>
                         <td><?php echo $org->phone ?></td>
-                        <td><?php echo $org->email ?></td>
+                        <td><?php echo get_default2($org, "email", "-") ?></td>
                         <td><?php echo get_default2($org, "website", "-") ?></td>
                         <?php if($display_status){ ?>
                             <td><?php echo $org->status ?></td>

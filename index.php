@@ -10,10 +10,10 @@ $conn = DBConnector::get_connection(get_config());
 $user = get_current_app_user($conn);
 $conn->close();
 if($user){
-    header("Location: public/home.php");
+    header("Location: public/index.php");
     exit();
 }else{
-    header("Location: public/index.html");
+    header("Location: public/auth.php");
     exit();
 }
 ?>

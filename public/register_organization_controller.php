@@ -6,6 +6,12 @@
     
     if(session_status() != 2) session_start();
     $user = get_default($_SESSION, 'user');
+    $role = get_default($user, 'role');
+    if($role === 'admin'){
+        $_SESSION['error_message'] = "A site admin can't create organizations.";
+        header("Location: index.php");
+        exit();
+    }
 ?>
 
 <?php
@@ -47,7 +53,7 @@
         
 
         $_SESSION["success_message"] = "Organization created successfully! Now wait for the admin to approve your request.";
-        header("Location: home.php");
+        header("Location: index.php");
         exit();
     }else{
         $_SESSION["error_message"] = "Name, Address and Phone fields are required.";

@@ -22,9 +22,9 @@
 </head>
 <body>
     <div class="custom_container">
-        <div id = "navbar justify-content-between">
+        <div id = "navbar">
             <span id = "menu_left_side">
-                <a class="navbar-brand" href="home.php" class="btn btn-outline-secondary">DoctorKhujo</a>
+                <a class="navbar-brand" href="index.php" class="btn btn-outline-secondary">DoctorKhujo</a>
                 <a href="appointment_history.php" class="btn btn-outline-secondary">Appointment History</a>
                 <a href="create_appointment.php" class="btn btn-outline-secondary">Make Appointment</a>
             </span>
@@ -38,7 +38,9 @@
                 <?php } ?>
                 
                 <a href="registered_organizations.php" class="btn btn-outline-secondary">Registered Medical Centers</a>
-                <a href="register_organization.php" class="btn btn-outline-secondary">Register Your Medical Center</a>
+                <?php if(get_default($user, "role") != "admin" ){ ?>
+                    <a href="register_organization.php" class="btn btn-outline-secondary">Register Your Medical Center</a> 
+                <?php } ?>
                 <a href="logout.php" class="btn btn-outline-danger">Logout</a>
             </span>
         </div>

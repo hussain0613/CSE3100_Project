@@ -33,7 +33,7 @@
                         <td><?php echo $org->name ?></td>
                         <td><?php echo $org->address ?></td>
                         <td><?php echo $org->phone ?></td>
-                        <td><?php echo $org->email ?></td>
+                        <td><?php echo get_default2($org, "email", "-") ?></td>
                         <td><?php echo get_default2($org, "website", "-") ?></td>
                         <?php if($display_status){ ?>
                             <td><?php echo $org->status ?></td>

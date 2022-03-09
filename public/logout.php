@@ -6,6 +6,6 @@ require_once $script_dir."/../utils/auth.php";
 
 setcookie("token", "", time() - 3600, "/");
 unset($_SESSION['user']);
-header("Location: index.html");
+header("Location: auth.php");
 exit();
 ?>

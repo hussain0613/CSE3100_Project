@@ -32,7 +32,7 @@ if(isset($_POST["form-name"])){
                 }
 
                 if($user){
-                    $_SESSION['user'] = $user;
+                    $_SESSION['user'] = $user->get_map();
                     $_SESSION['success_message'] = "User account created successfully. Please login.";
                     header("Location: $redirection_url");
                     exit();
@@ -62,7 +62,7 @@ if(isset($_POST["form-name"])){
             $conn->close();
             if($user){
                 if(isset($_REQUEST["next"])) $redirection_url = $_REQUEST["next"];
-                else $redirection_url = "home.php";
+                else $redirection_url = "index.php";
                 header("Location: $redirection_url");
                 exit();
             }else{

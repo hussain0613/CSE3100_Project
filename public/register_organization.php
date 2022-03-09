@@ -1,4 +1,20 @@
 <?php
+    $script_dir = dirname(__FILE__);
+    include_once $script_dir . "/../utils/auth.php";
+    require_login();
+
+    
+    if(session_status() != 2) session_start();
+    $user = get_default($_SESSION, 'user');
+    $role = get_default($user, 'role');
+    if($role === 'admin'){
+        $_SESSION['error_message'] = "A site admin can't create organizations.";
+        header("Location: index.php");
+        exit();
+    }
+?>
+
+<?php
     $title = "DoctorKhujo: Medical Center Registration";
     require "template.php";
 ?>
@@ -12,7 +28,7 @@
             <input type="email" name="email" placeholder="Email"> <br>
             <input type="text" name="website" placeholder="Website"> <br>
 
-            <input type="submit" value="Create Organization">
+            <input type="submit" value="Register Organization">
         </form>
 
     </div>
