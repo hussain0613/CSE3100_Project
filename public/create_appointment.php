@@ -12,8 +12,17 @@
         $doc_session = DoctorSession::get_by_id($conn, $_POST['id']);
         $booked_seats = Appointment::get_count_by_date_n_session_id($conn, $_POST['date'], $_POST['id']);
 
+        $date = $_POST['date'];
+        $day = date('l', strtotime($date));
+        $day = strtolower($day);
+
         if($doc_session->seat <= $booked_seats){
             $_SESSION['error_message'] = "No seats available";
+            header("Location: create_appointment.php?specialization=" . $_POST['specialization']);
+            exit();
+        }
+        if($doc_session->day !== $day){
+            $_SESSION['error_message'] = "Wrong day for the given session. Please select another session/day.";
             header("Location: create_appointment.php?specialization=" . $_POST['specialization']);
             exit();
         }
