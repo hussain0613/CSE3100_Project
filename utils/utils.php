@@ -11,6 +11,17 @@ function get_default(array $array, $key, $default = null){
         return $default;
 }
 
+function get_default2($obj, $key, $default = null){
+    // a default value is returned if the key is not found
+    // if $deufault is not provided and key is not found, null is returned
+
+    if(isset($obj->$key))
+        return $obj->$key;
+    
+    else
+        return $default;
+}
+
 function get_config(bool $force = false){
     if(!isset($GLOBALS["config"]) || $force){
         require_once "config.php";

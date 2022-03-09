@@ -2,25 +2,14 @@
 $script_dir = dirname(__FILE__);
 require_once $script_dir."/../utils/db_utils.php";
 
-class User{
-    public static string $__tablename__ = "user";
+class Appointment{
+    public static string $__tablename__ = "appointment";
 
-    private static string $__fields__ = "id, username, password, email, name, role, status, date_of_birth, gender, blood_group
-    creation_time, modification_time, creator_id, modificator_id"; 
     
     private int $id;
-    private string $uid;
-    public string $username;
-    private string $password;
-    public string $email;
-    public string $name;
 
-    public string $role;
-    public string $status;
-
-    public string $date_of_birth;
-    public string $gender;
-    public string $blood_group;
+    public $doctor_session_id;
+    public string $appointment_date;
 
     private string $creation_time;
     private string $modification_time;
@@ -50,20 +39,6 @@ class User{
         return $this->modifier_id;
     }
 
-    public function set_password(string $password): void{
-        $this->password = password_hash($password, PASSWORD_DEFAULT);
-    }
-    public function verify_password(string $password): bool{
-        return password_verify($password, $this->password);
-    }
-
-    public function set_uid(): void{
-        $this->uid = uniqid(bin2hex(random_bytes(20)), true);
-    }
-    public function get_uid(): string{
-        return $this->uid;
-    }
-
     function get_map(): array{
         $map = json_decode(json_encode($this), true);
         unset($map['__conn']);
@@ -81,9 +56,6 @@ class User{
         $this->creation_time = date("Y-m-d H:i:s");
         
         $map = $this->get_map();
-        $map["password"] = $this->password;
-        $this->set_uid();
-        $map["uid"] = $this->uid;
         $this->id = insert_into_table($this->__conn, self::$__tablename__, $map);
     }
 
@@ -112,58 +84,57 @@ class User{
         delete_from_table($this->__conn, self::$__tablename__, "id=".$this->id);
     }
     
-    public static function get_by_id(mysqli $conn, int $id): User{
-        $user = new User($conn);
-        $user->id = $id;
-        $user->sync();
-        return $user;
+    public static function get_by_id(mysqli $conn, int $id): Appointment{
+        $apt = new Appointment($conn);
+        $apt->id = $id;
+        $apt->sync();
+        return $apt;
     }
 
-    public static function get_by_username(mysqli $conn, string $username): User{
-        $user = new User($conn);
-        $res_assoc = select_from_table($conn, self::$__tablename__, null, "username='$username'");
-        $res_assoc = $res_assoc->fetch_assoc();
-        $user->from_assoc_to_obj($res_assoc);
-        return $user;
+    public static function create_appointment_from_assoc(mysqli $conn, array $assoc_arr, int $creator_id){
+        $apt = new Appointment($conn);
+        $apt->from_assoc_to_obj($assoc_arr);
+        $apt->insert($creator_id);
+        return $apt;
     }
 
-    public static function get_by_email(mysqli $conn, string $email): User{
-        $user = new User($conn);
-        $res_assoc = select_from_table($conn, self::$__tablename__, null, "email='$email'");
-        $res_assoc = $res_assoc->fetch_assoc();
-        $user->from_assoc_to_obj($res_assoc);
+    public static function get_multiple(mysqli $conn, string $where = null): array{
+        $apts = [];
+        $res = select_from_table($conn, self::$__tablename__, null, $where);
+        
+        $res_assoc = $res->fetch_assoc();
+        while($res_assoc){
+            $apt = new Appointment($conn);
+            $apt->from_assoc_to_obj($res_assoc);
+            $apts[] = $apt;
+
+            $res_assoc = $res->fetch_assoc();
+        }
+        return $apts;
     }
 
-    public static function create_user_from_assoc(mysqli $conn, array $assoc_arr, int $creator_id){
-        $user = new User($conn);
-        $user->from_assoc_to_obj($assoc_arr);
-        $user->set_password($assoc_arr["password"]);
-        $user->insert($creator_id);
-        return $user;
+    public static function get_count_by_date_n_session_id(mysqli $conn, string $date, int $session_id): int{
+        $res = select_from_table($conn, self::$__tablename__, ["COUNT(*)"], "appointment_date='".$date."' AND doctor_session_id=".$session_id);
+        $res_assoc = $res->fetch_assoc();
+        return $res_assoc["COUNT(*)"];
     }
 
     public static function create_table($conn){
         $query = "create table if not exists `".self::$__tablename__."`(
             id int auto_increment primary key,
-            uid varchar(255) not null,
-            name varchar(80),
-            username varchar(20) unique not null,
-            email varchar(30) unique not null,
-            password varchar(255) not null,
-            role varchar(20) default 'general',
-            status varchar(20) default 'active',
-
-            date_of_birth date,
-            gender varchar(10),
-            blood_group varchar(10),
+            
+            doctor_session_id int not null,
+            appointment_date date not null,
 
             creation_time datetime,
             modification_time datetime,
 
-            creator_id int,
+            creator_id int not null,
             modifier_id int,
             foreign key(creator_id) references `user`(id),
-            foreign key(modifier_id) references `user`(id)
+            foreign key(modifier_id) references `user`(id),
+            foreign key(doctor_session_id) references `doctor_session`(id),
+            unique(doctor_session_id, appointment_date)
         );";
         
         if($conn->query($query)){

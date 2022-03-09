@@ -2,7 +2,7 @@
     function delete_table(mysqli $conn, string $table_name): void{
         $query = "drop table `".$table_name."`;";
         if($conn->query($query)){
-            echo "[*] Table deleted succesessfully!<br>";
+            // echo "[*] Table deleted succesessfully!<br>";
         }
         else{
             die("[!] Error deleting table! " . $conn->error);
@@ -23,6 +23,8 @@
             $val = $values[$i];
             if(is_string($val)){
                 $val = "'".$val."'";
+            }else if(is_bool($val)){
+                $val = $val ? "true" : "false";
             }
 
             if($i == count($fields)-1){
@@ -35,11 +37,11 @@
         $query .= ");";
 
         if($conn->query($query)){
-            echo "[*] Inserted succesessfully!<br>";
+            // echo "[*] Inserted succesessfully!<br>";
             return $conn->insert_id;
         }
         else{
-            die("[!] Error inserting into table! " . $conn->error);
+            throw new Exception("[!] Error inserting into table! " . $conn->error);
         }
     }
 
@@ -71,11 +73,11 @@
 
         $res = $conn->query($query);
         if($res){
-            echo "[*] Selected succesessfully!<br>";
+            // echo "[*] Selected succesessfully!<br>";
             return $res;
         }
         else{
-            die("[!] Error selecting from table! " . $conn->error);
+            throw new Exception("[!] Error selecting from table! " . $conn->error);
         }
     }
 
@@ -101,10 +103,10 @@
         $query .= " where ".$where.";";
 
         if($conn->query($query)){
-            echo "[*] Updated succesessfully!<br>";
+            // echo "[*] Updated succesessfully!<br>";
         }
         else{
-            die("[!] Error updating table! " . $conn->error);
+            throw new Exception("[!] Error updating table! " . $conn->error);
         }
     }
 
@@ -112,10 +114,10 @@
         $query = "delete from `".$table_name."` where ".$where.";";
 
         if($conn->query($query)){
-            echo "[*] Deleted succesessfully!<br>";
+            // echo "[*] Deleted succesessfully!<br>";
         }
         else{
-            die("[!] Error deleting from table! " . $conn->error);
+            throw new Exception("[!] Error deleting from table! " . $conn->error);
         }
     }
 ?>
