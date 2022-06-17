@@ -61,8 +61,10 @@ class DBConnector {
 
     
     function create_connection(): mysqli {
-        $conn = new mysqli($this->host, $this->user, $this->password, $this->dbname, $this->port);
-        if ($conn->connect_error) {
+        try{
+            $conn = new mysqli($this->host, $this->user, $this->password, $this->dbname, $this->port);
+        }catch(Exception $e){
+        // if ($conn->connect_error) {
             if(strpos($conn->connect_error, "Unknown database") >= 0){
                 $this->create_database();
                 return $this->create_connection();
